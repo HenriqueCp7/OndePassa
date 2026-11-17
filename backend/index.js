@@ -10,7 +10,7 @@ app.use(express.json())
 function simplificarFilme(filme) {
     let dataLancamento = filme.release_date
 
-    if(dataLancamento === null) {
+    if(!dataLancamento) {
         dataLancamento = null
     } else {
         dataLancamento = dataLancamento.substr(0, 4)
@@ -20,10 +20,10 @@ function simplificarFilme(filme) {
 
     let posterUrl = filme.poster_path
 
-    if(posterUrl === null) {
+    if(!posterUrl) {
         posterUrl = null
     } else {
-        posterUrl = `https://image.tmdb.org/t/p/w342/${filme.poster_path}`
+        posterUrl = `https://image.tmdb.org/t/p/w342${filme.poster_path}`
     }
 
     return {
@@ -35,7 +35,21 @@ function simplificarFilme(filme) {
     }
 }
 
-//Usar ao invez do axios
+function simplificarProvedores(lista) {
+    if (!lista) {
+        return []
+    } 
+        
+    return lista.map(provedor => {
+        const logoUrl = `https://image.tmdb.org/t/p/w92${provedor.logo_path}`
+
+        return {
+            "nome": provedor.provider_name, 
+            "logo": logoUrl
+        }
+    })
+}
+
 const tmdbClient = axios.create({
     baseURL: 'https://api.themoviedb.org/3',
     params: {
@@ -98,6 +112,78 @@ app.get('/filmes', async (req, res) => {
         });
     }
 }) 
+
+app.get('/filme', async (req, res) => {
+    const id = req.query.id
+
+    if(!id) {
+        return res.status(400).json({
+            "mensagem": "Informe o id do filme."
+        })
+    } else {
+        try {
+            const resposta =  await tmdbClient.get(`/movie/${id}?append_to_response=watch/providers`)
+
+            let filme = simplificarFilme(resposta.data)
+
+            let duracao = resposta.data.runtime
+            if(duracao === 0 || !duracao) {
+                duracao = null
+            } 
+
+            let generos = `[${resposta.data.genres.map(genero => {
+                return genero.name
+            }).join(", ")}]`
+
+            let sinopse = resposta.data.overview
+            if(!sinopse) sinopse = null
+            
+            let imagemDeFundoUrl = resposta.data.backdrop_path
+            if (imagemDeFundoUrl !== null) {
+                imagemDeFundoUrl = `https://image.tmdb.org/t/p/w780${imagemDeFundoUrl}`
+            } 
+
+            let assistirPath = {}
+            let provider = resposta.data["watch/providers"]
+
+            if(provider && provider.results && provider.results.BR) {
+                assistirPath = provider.results.BR
+            }
+
+            let assinaturaSimplificada = simplificarProvedores(assistirPath.flatrate)
+            let aluguelSimplificada = simplificarProvedores(assistirPath.rent)
+            let compraSimplificada = simplificarProvedores(assistirPath.buy)
+
+            let ondeAssistir = {
+                assinatura: assinaturaSimplificada,
+                aluguel: aluguelSimplificada,
+                compra: compraSimplificada
+            }
+
+            res.json({
+                id: filme.id,
+                titulo: filme.titulo,
+                ano: filme.ano,
+                nota: filme.nota,
+                duracao: duracao,
+                generos: generos,
+                sinopse: sinopse,
+                fundo: imagemDeFundoUrl,
+                ondeAssistir: ondeAssistir
+            })
+        } catch(e){
+            if(e.response && e.response.status === 404) {
+                res.status(404).json({
+                    "mensagem": "Filme não encontrado"
+                })
+            } else {
+                res.status(502).json({
+                    "mensagem": 'Erro ao consultar filmes'
+                });
+            }
+        }
+    }
+})
 
 const port = 3000
 app.listen(port, () => {
