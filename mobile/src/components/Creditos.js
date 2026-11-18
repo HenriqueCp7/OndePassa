@@ -15,8 +15,9 @@ export default class Creditos extends Component {
 
 const styles = StyleSheet.create ({
     creditos: {
-        fontSize: 18,
+        fontSize: 12,
         textAlign: 'center',
-        color: 'grey'
+        color: 'grey',
+        marginTop: 20
     }
 })
