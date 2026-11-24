@@ -6,7 +6,7 @@ export default function Carregando({ mensagem='Carregando'}) {
     return (
         <View style={styles.alinhar}>
             <ActivityIndicator size= "large" color= "#E0473C"/>
-            <Text>
+            <Text style={styles.mensagem}>
                 {mensagem}
             </Text>
         </View>
@@ -16,7 +16,12 @@ export default function Carregando({ mensagem='Carregando'}) {
 const styles = StyleSheet.create ({
     alinhar: {
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        gap: 15
+    },
+
+    mensagem: {
+        color: 'white'
     }
 })
 

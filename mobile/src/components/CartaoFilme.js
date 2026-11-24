@@ -7,7 +7,8 @@ export default function CartaoFilme({titulo, ano, nota, poster}) {
         if(poster === null) {
             imagem = (
                 <View style={styles.semPoster}>
-                    <Text>Sem poster</Text>
+                    <Text style={styles.textoSemPoster}>Sem</Text>
+                    <Text style={styles.textoSemPoster}>pôster</Text>
                 </View>
             )
         } else {
@@ -41,8 +42,15 @@ const styles = StyleSheet.create ({
     semPoster: {
         height: 105,
         width: 70,
-        color: 'grey',
-        borderRadius: 10
+        alignItems: 'center',
+        backgroundColor: 'grey',
+        borderRadius: 10,
+        justifyContent: 'center'
+    },
+
+    textoSemPoster: {
+        textAlign: 'center',
+        color: '#16162b'
     },
 
     poster: {

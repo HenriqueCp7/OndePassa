@@ -7,7 +7,7 @@ export default class Cabecalho extends Component {
     return (
       <View>
         <Text style={styles.titulo}>
-            🍿Onde Passa
+            🍿 Onde Passa
         </Text>
 
         <Text style={styles.subtitulo}>
