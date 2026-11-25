@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, Image, Pressable, ScrollView } from 'react-nati
 import backendClient from '../utils/backendClient'
 import Carregando from './Carregando'
 import {formatarNota, formatarDuracao} from '../utils/formatacao'
+import Provedores from './Provedores'
 
 export default function DetalhesFilme({ id, onVoltar }) {
 
@@ -39,7 +40,7 @@ export default function DetalhesFilme({ id, onVoltar }) {
     )
   } else if (erro !== null) {
     conteudo = (
-      <Text>{erro}</Text>
+      <Text style={styles.textoErro}>{erro}</Text>
     )
   } else if (filme !== null) {
     let imagemFundo
@@ -85,6 +86,25 @@ export default function DetalhesFilme({ id, onVoltar }) {
       sinopse = filme.sinopse
     }
 
+    let provedores
+    let semProvedores = (filme.ondeAssistir.assinatura.length === 0 && filme.ondeAssistir.aluguel.length === 0 && filme.ondeAssistir.compra.length === 0)
+
+    if (semProvedores) {
+      provedores = (
+        <Text style={styles.textoErro}>
+          Este filme não está disponível em nenhum serviço no Brasil no momento.
+        </Text>
+      )
+    } else {
+      provedores = (
+        <View>
+          <Provedores titulo="Assinatura" provedores={filme.ondeAssistir.assinatura}/>
+          <Provedores titulo="Aluguel" provedores={filme.ondeAssistir.aluguel}/>
+          <Provedores titulo="Compra" provedores={filme.ondeAssistir.compra}/>
+        </View>
+      )
+    }
+
     conteudo = (
       <ScrollView style={styles.scroll}>
 
@@ -101,6 +121,10 @@ export default function DetalhesFilme({ id, onVoltar }) {
         
           <Text style={styles.tituloSinopse}>Sinopse</Text>
           <Text style={styles.sinopse}>{sinopse}</Text>
+
+           <Text style={styles.textoOndeAssistir}>Onde assistir no Brasil</Text>
+              {provedores}
+          <Text style={styles.dadosJustWatch}>Dados de disponibilidade: JustWatch</Text>
       </ScrollView>
     )
   }
@@ -115,7 +139,6 @@ export default function DetalhesFilme({ id, onVoltar }) {
           {conteudo}
         </View>
       </View>
-
   )
 }
 
@@ -146,7 +169,9 @@ const styles = StyleSheet.create({
   },
 
   textoErro: {
-    color: 'white'
+    color: 'white',
+    textAlign: 'justify',
+    lineHeight: 22
   },
 
   fundo: {
@@ -236,5 +261,21 @@ const styles = StyleSheet.create({
     color: 'white',
     lineHeight: 22,
     textAlign: 'justify' 
+  },
+
+  dadosJustWatch: {
+    color: 'grey',
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 7
+  },
+
+  textoOndeAssistir: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+    textAlign: 'left',
+    marginBottom: 10,
+    marginTop: 15
   }
 })
