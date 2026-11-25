@@ -1,9 +1,8 @@
-import React from 'react'
-import { FlatList, View, Text, StyleSheet } from 'react-native'
+import { FlatList, Text, StyleSheet, View } from 'react-native'
 import CartaoFilme from './CartaoFilme'
-import formataNota from '../utils/formatacao'
+import { formatarNota } from '../utils/formatacao'
 
-export default function ListaFilmes({titulo, filmes}) {
+export default function ListaFilmes({titulo, filmes, onSelecionar}) {
   return (
     <View style={styles.view}>
         <Text style={styles.titulo}>
@@ -15,10 +14,12 @@ export default function ListaFilmes({titulo, filmes}) {
             data={filmes}
             renderItem={({item}) => 
                 <CartaoFilme
+                    id={item.id}
                     titulo={item.titulo}
                     ano={item.ano}
-                    nota={formataNota(item.nota)}
+                    nota={formatarNota(item.nota)}
                     poster={item.poster}   
+                    onSelecionar={() => onSelecionar(item.id)}
                 />}
             keyExtractor={item => item.id.toString()}
         />

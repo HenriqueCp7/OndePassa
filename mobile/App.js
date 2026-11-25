@@ -10,6 +10,7 @@ import Carregando from './src/components/Carregando';
 import ListaFilmes from './src/components/ListaFilmes';
 import backendClient from './src/utils/backendClient';
 import Busca from './src/components/Busca';
+import DetalhesFilme from './src/components/DetalhesFilme';
 
 export default function App() {
 
@@ -19,18 +20,19 @@ export default function App() {
   const [termo, setTermo] = useState('')
   const [termoBuscado, setTermoBuscado] = useState('')
   const [resultados, setResultados] = useState(null)
+  const [filmeSelecionado, setFilmeSelecionado] = useState(null)
 
   useEffect(() => {
       async function carregandoEmAlta(){
         try {
           const resposta = await backendClient.get(`/em-alta`)
           console.log(resposta.data)
-          setEmAlta(resposta.data.result)
+          setEmAlta(resposta.data)
           setCarregando(false)
         } catch(erro) {
           console.log(erro)
           setCarregando(false)
-          setErro("Não foi possível carregar os filmes")
+          setErro("Não foi possível carregar os filmes. Verifique se o backend está no ar.")
         }
       }
 
@@ -38,43 +40,80 @@ export default function App() {
   }, [])
 
   const buscaFilme = async () => {
+    setCarregando(true)
     try {
       const resposta = await backendClient.get(`/filmes`, {
         params: {busca: termo}
       })
 
       setTermoBuscado(termo)
-      setResultados(resposta.data.result)
+      setResultados(resposta.data)
       setErro(null)
       
     } catch(erro) {
       if(erro.response && erro.response.data) {
         setErro((erro.response.data.mensagem))
       } else {
-        console.log("Não foi possível buscar os filmes")
+        setErro("Não foi possível buscar os filmes")
       }
     }
-
+    setCarregando(false)
   }
 
   const limpaBusca = () => {
     setTermo('')
     setResultados(null)
-    setTermoBuscado(null)
+    setTermoBuscado('')
     setErro(null)
+  }
+
+  const selecionaFilme = (id) => {
+    setFilmeSelecionado(id)
+  }
+
+  const voltaFilme = () => {
+    setFilmeSelecionado(null)
+  }
+
+  let mensagemCarregando = "Buscando os filmes em alta..."
+  if (emAlta.length === 0) {
+    mensagemCarregando = "Procurando filmes..."
   }
 
   let conteudo
   if(carregando) {
-    conteudo = <Carregando mensagem="Buscando os filmes em alta..."/>
+    conteudo = <Carregando mensagem={mensagemCarregando}/>
   } else if (erro) {
-    conteudo = <Carregando mensagem={erro}></Carregando>
+    conteudo = <Text style={styles.text}>{erro}</Text>
   } else if (resultados !== null && resultados.length === 0) {
-    conteudo = <Text style={styles.text}>Nenhum filme encontrado para "{termoBuscado}"</Text>
+    conteudo = <Text style={styles.text}>Nenhum filme encontrado para "{termoBuscado}".</Text>
   } else if (resultados !== null){
-    conteudo = <ListaFilmes titulo={`Resultados para "${termoBuscado}"`} filmes={resultados}></ListaFilmes>
+    conteudo = <ListaFilmes titulo={`Resultados para "${termoBuscado}"`} filmes={resultados} onSelecionar={selecionaFilme}/>
   } else {
-    conteudo = <ListaFilmes titulo="Em alta nesta semana" filmes={emAlta}/>
+    conteudo = <ListaFilmes titulo="Em alta nesta semana" filmes={emAlta} onSelecionar={selecionaFilme}/>
+  }
+
+  let tela
+  if (filmeSelecionado !== null) {
+    tela =
+      <View style={styles.telaDetalhes}>
+        <DetalhesFilme id={filmeSelecionado} onVoltar={voltaFilme}/>
+      </View>
+  } else {
+    tela = (
+      <>
+        <Busca
+          termo={termo}
+          onTermoAlterado={setTermo}
+          onBuscar={buscaFilme}
+          onLimpar={limpaBusca}
+        />
+
+        <View style={styles.conteudo}>
+          {conteudo}
+        </View>
+      </>
+    )
   }
 
   return (
@@ -82,21 +121,10 @@ export default function App() {
       <SafeAreaView style={styles.cabecalho}>
         <View style={styles.topo}>
           <Cabecalho/>
+        </View>
 
-          <Busca 
-            termo={termo}
-            onTermoAlterado={setTermo}
-            onBuscar={buscaFilme}
-            onLimpar={limpaBusca}
-          >
-            <Carregando mensagem={"Procurando filmes..."}/>
-          </Busca>
-        </View>
-        
-        <View style={styles.conteudo}>
-          {conteudo}
-        </View>
-              
+        {tela}       
+
         <Creditos/> 
       </SafeAreaView>
     </SafeAreaProvider>
@@ -126,5 +154,10 @@ const styles = StyleSheet.create({
 
   text: {
     color: 'white'
+  },
+
+  telaDetalhes: {
+    flex: 1,
+    width: '100%'
   }
 });

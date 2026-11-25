@@ -1,35 +1,35 @@
-import { Text, View, StyleSheet, Image } from "react-native"
+import { Text, View, StyleSheet, Image, Pressable } from "react-native"
 
-export default function CartaoFilme({titulo, ano, nota, poster}) {
-        
-        let imagem
+export default function CartaoFilme({ titulo, ano, nota, poster, onSelecionar }) {
 
-        if(poster === null) {
-            imagem = (
-                <View style={styles.semPoster}>
-                    <Text style={styles.textoSemPoster}>Sem</Text>
-                    <Text style={styles.textoSemPoster}>pôster</Text>
-                </View>
-            )
-        } else {
-            imagem = (
-                <Image style={styles.poster} source={{ uri: poster }}/>
-            )
-        }
+    let imagem
 
-        return(
-            <View style={styles.cartao}>
-                {imagem}
-
-                <View style={styles.informacoes}>
-                    <Text style={styles.titulo} numberOfLines={2}>{titulo}</Text>
-                
-                    {ano !== null && <Text style={styles.ano}>{ano}</Text>}
-
-                    <Text style={styles.nota}>{nota}</Text>
-                </View>
+    if (poster === null) {
+        imagem = (
+            <View style={styles.semPoster}>
+                <Text style={styles.textoSemPoster}>Sem</Text>
+                <Text style={styles.textoSemPoster}>pôster</Text>
             </View>
         )
+    } else {
+        imagem = (
+            <Image style={styles.poster} source={{ uri: poster }} />
+        )
+    }
+
+    return (
+        <Pressable style={styles.cartao} onPress={onSelecionar}>
+            {imagem}
+
+            <View style={styles.informacoes}>
+                <Text style={styles.titulo} numberOfLines={2}>{titulo}</Text>
+
+                {ano !== null && <Text style={styles.ano}>{ano}</Text>}
+
+                <Text style={styles.nota}>{nota}</Text>
+            </View>
+        </Pressable>
+    )
 }
 
 const styles = StyleSheet.create ({

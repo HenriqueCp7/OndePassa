@@ -16,8 +16,7 @@ function simplificarFilme(filme) {
         dataLancamento = dataLancamento.substr(0, 4)
     }
 
-    let notaDoFilme = filme.vote_average.toFixed(1)
-
+    let notaDoFilme = Number(filme.vote_average.toFixed(1))
     let posterUrl = filme.poster_path
 
     if(!posterUrl) {
@@ -71,7 +70,7 @@ app.get('/em-alta', async (req, res) => {
 
         const filmes = resposta.data.results.map(simplificarFilme)
     
-        res.json({result: filmes})
+        res.json(filmes)
     } catch (erro) {
 
         res.status(502).json({
@@ -90,7 +89,7 @@ app.get('/filmes', async (req, res) => {
         })
     } 
         
-    console.log(`Busca ${termo}`)
+    console.log(`Busca: ${termo}`)
 
     let busca = termo.trim()
     
@@ -104,11 +103,11 @@ app.get('/filmes', async (req, res) => {
 
         const filmes = resposta.data.results.map(simplificarFilme)
     
-        res.json({result: filmes})
-    } catch {
+        res.json(filmes)
+    } catch(erro) {
 
         res.status(502).json({
-            "mensagem": 'Erro ao consultar filmes'
+            "mensagem": 'Não foi possível consultar o catálogo de filmes'
         });
     }
 }) 
@@ -131,17 +130,19 @@ app.get('/filme', async (req, res) => {
                 duracao = null
             } 
 
-            let generos = `[${resposta.data.genres.map(genero => {
+            let generos = resposta.data.genres.map(genero => {
                 return genero.name
-            }).join(", ")}]`
+            })
 
             let sinopse = resposta.data.overview
             if(!sinopse) sinopse = null
             
             let imagemDeFundoUrl = resposta.data.backdrop_path
-            if (imagemDeFundoUrl !== null) {
+            if (imagemDeFundoUrl) {
                 imagemDeFundoUrl = `https://image.tmdb.org/t/p/w780${imagemDeFundoUrl}`
-            } 
+            } else {
+                imagemDeFundoUrl = null
+            }
 
             let assistirPath = {}
             let provider = resposta.data["watch/providers"]
@@ -165,20 +166,21 @@ app.get('/filme', async (req, res) => {
                 titulo: filme.titulo,
                 ano: filme.ano,
                 nota: filme.nota,
+                poster: filme.poster,
                 duracao: duracao,
                 generos: generos,
                 sinopse: sinopse,
                 fundo: imagemDeFundoUrl,
                 ondeAssistir: ondeAssistir
             })
-        } catch(e){
-            if(e.response && e.response.status === 404) {
+        } catch(erro){
+            if(erro.response && erro.response.status === 404) {
                 res.status(404).json({
                     "mensagem": "Filme não encontrado"
                 })
             } else {
                 res.status(502).json({
-                    "mensagem": 'Erro ao consultar filmes'
+                    "mensagem": 'Não foi possível consultar o catálogo de filmes'
                 });
             }
         }
