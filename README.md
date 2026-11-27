@@ -31,7 +31,7 @@ npm install
 - Abra o arquivo **backendClient.js** em **/src/utils** e troque o localhost pelo seu IP do seu computador. Abra o terminal e descubra seu IP através do comando **ipconfig**.
 
 ```bash
-baseURL: 'http://{SEU_IP}:8081/'
+baseURL: 'http://{SEU_IP}:3000/'
 ```
 
 - Baixe o aplicativo Expo Go no seu celular e crie uma conta. Para abrir o aplicativo, ambos o celular e computador precisam estar na mesma rede. No terminal, digite o comando abaixo:
