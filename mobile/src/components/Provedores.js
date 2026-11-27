@@ -1,7 +1,6 @@
-import { ScrollView, Text, View, StyleSheet, Image} from 'react-native'
+import { ScrollView, Text, View, StyleSheet, Image } from 'react-native'
 
 export default function Provedores({ titulo, provedores }) {
-
 
     if (!provedores || provedores.length === 0) {
         return null
@@ -12,7 +11,7 @@ export default function Provedores({ titulo, provedores }) {
                 <ScrollView horizontal style={styles.scroll}>
                     {provedores.map(provedor => (
                         <View key={provedor.nome} style={styles.item}>
-                            <Image style={styles.logo} source={{uri: provedor.logo}}/>
+                            <Image style={styles.logo} source={{ uri: provedor.logo }} />
                             <Text style={styles.nome} numberOfLines={2}>{provedor.nome}</Text>
                         </View>
                     ))}
@@ -22,7 +21,7 @@ export default function Provedores({ titulo, provedores }) {
     }
 }
 
-const styles = StyleSheet.create ({
+const styles = StyleSheet.create({
     item: {
         width: 72,
         alignItems: 'center',

@@ -1,11 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
-import {
-SafeAreaProvider,
-SafeAreaView,
-} from 'react-native-safe-area-context';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
 import Cabecalho from './src/components/Cabecalho';
 import Creditos from './src/components/Creditos';
-import { useEffect, useState } from 'react';
 import Carregando from './src/components/Carregando';
 import ListaFilmes from './src/components/ListaFilmes';
 import backendClient from './src/utils/backendClient';
@@ -15,50 +12,78 @@ import DetalhesFilme from './src/components/DetalhesFilme';
 export default function App() {
 
   const [emAlta, setEmAlta] = useState([])
-  const [carregando, setCarregando] = useState(true)  
+  const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
   const [termo, setTermo] = useState('')
   const [termoBuscado, setTermoBuscado] = useState('')
   const [resultados, setResultados] = useState(null)
   const [filmeSelecionado, setFilmeSelecionado] = useState(null)
+  const [dica, setDica] = useState(null)
+  const [buscando, setBuscando] = useState(false)
 
-  useEffect(() => {
-      async function carregandoEmAlta(){
-        try {
-          const resposta = await backendClient.get(`/em-alta`)
-          console.log(resposta.data)
-          setEmAlta(resposta.data)
-          setCarregando(false)
-        } catch(erro) {
-          console.log(erro)
-          setCarregando(false)
-          setErro("Não foi possível carregar os filmes. Verifique se o backend está no ar.")
-        }
-      }
-
-      carregandoEmAlta()
-  }, [])
-
-  const buscaFilme = async () => {
-    setCarregando(true)
+  async function carregandoEmAlta() {
     try {
-      const resposta = await backendClient.get(`/filmes`, {
-        params: {busca: termo}
-      })
-
-      setTermoBuscado(termo)
-      setResultados(resposta.data)
-      setErro(null)
-      
-    } catch(erro) {
-      if(erro.response && erro.response.data) {
-        setErro((erro.response.data.mensagem))
-      } else {
-        setErro("Não foi possível buscar os filmes")
-      }
+      const resposta = await backendClient.get(`/em-alta`)
+      console.log(resposta.data)
+      setEmAlta(resposta.data)
+    } catch (erro) {
+      console.log(erro)
+      setErro("Não foi possível carregar os filmes. Verifique se o backend está no ar.")
     }
     setCarregando(false)
   }
+
+  useEffect(() => {
+    carregandoEmAlta()
+  }, [])
+
+  useEffect(() => {
+    let ativa = true
+
+    if (!termo) {
+      setDica(null)
+      setResultados(null)
+      setErro(null)
+      carregandoEmAlta()
+    } else if (termo.length === 1 || termo.length === 2) {
+      setDica("Digite pelo menos 3 letras")
+    } else if (termo.length >= 3) {
+      setDica(null)
+      const id = setTimeout(async () => {
+        setBuscando(true)
+        try {
+          const resposta = await backendClient.get(`/filmes`, {
+            params: { busca: termo }
+          })
+          if (!ativa) {
+            return
+          }
+          setTermoBuscado(termo)
+          setResultados(resposta.data)
+          setErro(null)
+        } catch (erro) {
+          if (!ativa) {
+            return
+          }
+          if (erro.response && erro.response.data) {
+            setErro((erro.response.data.mensagem))
+          } else {
+            setErro("Não foi possível buscar os filmes")
+          }
+        }
+        if (ativa) {
+          setBuscando(false)
+        }
+      }, 600)
+
+      return () => {
+        setBuscando(false)
+        ativa = false
+        clearTimeout(id)
+      }
+    }
+  }, [termo])
+
 
   const limpaBusca = () => {
     setTermo('')
@@ -81,33 +106,49 @@ export default function App() {
   }
 
   let conteudo
-  if(carregando) {
-    conteudo = <Carregando mensagem={mensagemCarregando}/>
+  if (carregando) {
+    conteudo = <Carregando mensagem={mensagemCarregando} />
   } else if (erro) {
     conteudo = <Text style={styles.text}>{erro}</Text>
   } else if (resultados !== null && resultados.length === 0) {
     conteudo = <Text style={styles.text}>Nenhum filme encontrado para "{termoBuscado}".</Text>
-  } else if (resultados !== null){
-    conteudo = <ListaFilmes titulo={`Resultados para "${termoBuscado}"`} filmes={resultados} onSelecionar={selecionaFilme}/>
+  } else if (resultados !== null) {
+    conteudo = <ListaFilmes titulo={`Resultados para "${termoBuscado}"`} filmes={resultados} onSelecionar={selecionaFilme} />
   } else {
-    conteudo = <ListaFilmes titulo="Em alta nesta semana" filmes={emAlta} onSelecionar={selecionaFilme}/>
+    conteudo = <ListaFilmes titulo="Em alta nesta semana" filmes={emAlta} onSelecionar={selecionaFilme} />
+  }
+
+  let pensando = null
+  if (buscando) {
+    pensando = (
+      <View>
+        <ActivityIndicator />
+      </View>
+    )
   }
 
   let tela
   if (filmeSelecionado !== null) {
     tela =
       <View style={styles.telaDetalhes}>
-        <DetalhesFilme id={filmeSelecionado} onVoltar={voltaFilme}/>
+        <DetalhesFilme id={filmeSelecionado} onVoltar={voltaFilme} />
       </View>
   } else {
     tela = (
       <>
-        <Busca
-          termo={termo}
-          onTermoAlterado={setTermo}
-          onBuscar={buscaFilme}
-          onLimpar={limpaBusca}
-        />
+        <View style={styles.buscaAlinhada}>
+          <View style={{ flex: 4 }}>
+            <Busca
+              termo={termo}
+              onTermoAlterado={setTermo}
+              onLimpar={limpaBusca}
+            />
+          </View>
+
+          <View style={styles.pensando}>{pensando}</View>
+        </View>
+
+        <Text style={styles.dica}>{dica}</Text>
 
         <View style={styles.conteudo}>
           {conteudo}
@@ -120,12 +161,12 @@ export default function App() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.cabecalho}>
         <View style={styles.topo}>
-          <Cabecalho/>
+          <Cabecalho />
         </View>
 
-        {tela}       
+        {tela}
 
-        <Creditos/> 
+        <Creditos />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -159,5 +200,26 @@ const styles = StyleSheet.create({
   telaDetalhes: {
     flex: 1,
     width: '100%'
+  },
+
+  dica: {
+    color: "white",
+    marginTop: -10,
+    marginBottom: 5,
+  },
+
+  pensando: {
+    color: "white",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingLeft: 15,
+    flex: 1
+  },
+
+  buscaAlinhada: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    gap: 10,
   }
 });

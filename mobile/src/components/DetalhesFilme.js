@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Image, Pressable, ScrollView } from 'react-native'
+import { formatarNota, formatarDuracao } from '../utils/formatacao'
 import backendClient from '../utils/backendClient'
 import Carregando from './Carregando'
-import {formatarNota, formatarDuracao} from '../utils/formatacao'
 import Provedores from './Provedores'
 
 export default function DetalhesFilme({ id, onVoltar }) {
@@ -34,11 +34,7 @@ export default function DetalhesFilme({ id, onVoltar }) {
 
   let conteudo
 
-  if (carregando) {
-    conteudo = (
-      <Carregando mensagem={"Carregando os detalhes..."} />
-    )
-  } else if (erro !== null) {
+  if (erro !== null) {
     conteudo = (
       <Text style={styles.textoErro}>{erro}</Text>
     )
@@ -52,9 +48,9 @@ export default function DetalhesFilme({ id, onVoltar }) {
       )
     } else {
       imagemFundo = (
-      <View style={styles.semFundo}>
-        <Text style={styles.textoSemFundo}>Sem imagem de fundo</Text>
-      </View>
+        <View style={styles.semFundo}>
+          <Text style={styles.textoSemFundo}>Sem imagem de fundo</Text>
+        </View>
       )
     }
 
@@ -98,9 +94,9 @@ export default function DetalhesFilme({ id, onVoltar }) {
     } else {
       provedores = (
         <View>
-          <Provedores titulo="Assinatura" provedores={filme.ondeAssistir.assinatura}/>
-          <Provedores titulo="Aluguel" provedores={filme.ondeAssistir.aluguel}/>
-          <Provedores titulo="Compra" provedores={filme.ondeAssistir.compra}/>
+          <Provedores titulo="Assinatura" provedores={filme.ondeAssistir.assinatura} />
+          <Provedores titulo="Aluguel" provedores={filme.ondeAssistir.aluguel} />
+          <Provedores titulo="Compra" provedores={filme.ondeAssistir.compra} />
         </View>
       )
     }
@@ -118,27 +114,32 @@ export default function DetalhesFilme({ id, onVoltar }) {
             <Text style={styles.nota}>{formatarNota(filme.nota)}</Text>
           </View>
         </View>
-        
-          <Text style={styles.tituloSinopse}>Sinopse</Text>
-          <Text style={styles.sinopse}>{sinopse}</Text>
 
-           <Text style={styles.textoOndeAssistir}>Onde assistir no Brasil</Text>
-              {provedores}
-          <Text style={styles.dadosJustWatch}>Dados de disponibilidade: JustWatch</Text>
+        <Text style={styles.tituloSinopse}>Sinopse</Text>
+        <Text style={styles.sinopse}>{sinopse}</Text>
+
+        <Text style={styles.textoOndeAssistir}>Onde assistir no Brasil</Text>
+        {provedores}
+        <Text style={styles.dadosJustWatch}>Dados de disponibilidade: JustWatch</Text>
       </ScrollView>
     )
   }
 
   return (
-      <View style={styles.tela}>
-        <Pressable style={styles.botaoVoltar} onPress={onVoltar}>
-          <Text style={styles.textoVoltar}> {"<"} Voltar</Text>
-        </Pressable>
-
+    <View style={styles.tela}>
+      <Pressable style={styles.botaoVoltar} onPress={onVoltar}>
+        <Text style={styles.textoVoltar}> {"<"} Voltar</Text>
+      </Pressable>
+      {carregando ? (
+        <View style={styles.conteudo}>
+          <Carregando mensagem="Carregando os detalhes..." />
+        </View>
+      ) : (
         <View style={styles.conteudo}>
           {conteudo}
         </View>
-      </View>
+      )}
+    </View>
   )
 }
 
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   sinopse: {
     color: 'white',
     lineHeight: 22,
-    textAlign: 'justify' 
+    textAlign: 'justify'
   },
 
   dadosJustWatch: {

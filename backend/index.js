@@ -10,7 +10,7 @@ app.use(express.json())
 function simplificarFilme(filme) {
     let dataLancamento = filme.release_date
 
-    if(!dataLancamento) {
+    if (!dataLancamento) {
         dataLancamento = null
     } else {
         dataLancamento = dataLancamento.substr(0, 4)
@@ -19,7 +19,7 @@ function simplificarFilme(filme) {
     let notaDoFilme = Number(filme.vote_average.toFixed(1))
     let posterUrl = filme.poster_path
 
-    if(!posterUrl) {
+    if (!posterUrl) {
         posterUrl = null
     } else {
         posterUrl = `https://image.tmdb.org/t/p/w342${filme.poster_path}`
@@ -37,13 +37,13 @@ function simplificarFilme(filme) {
 function simplificarProvedores(lista) {
     if (!lista) {
         return []
-    } 
-        
+    }
+
     return lista.map(provedor => {
         const logoUrl = `https://image.tmdb.org/t/p/w92${provedor.logo_path}`
 
         return {
-            "nome": provedor.provider_name, 
+            "nome": provedor.provider_name,
             "logo": logoUrl
         }
     })
@@ -69,7 +69,7 @@ app.get('/em-alta', async (req, res) => {
         const resposta = await tmdbClient.get(`/trending/movie/week`)
 
         const filmes = resposta.data.results.map(simplificarFilme)
-    
+
         res.json(filmes)
     } catch (erro) {
 
@@ -83,16 +83,16 @@ app.get('/filmes', async (req, res) => {
     const termo = req.query.busca
     console.log(termo)
 
-    if(!termo || termo.trim().length === 0) {
-        return res.status(400).json ({
-            "mensagem": "Informe o título de um filme." 
+    if (!termo || termo.trim().length === 0) {
+        return res.status(400).json({
+            "mensagem": "Informe o título de um filme."
         })
-    } 
-        
+    }
+
     console.log(`Busca: ${termo}`)
 
     let busca = termo.trim()
-    
+
     try {
         const resposta = await tmdbClient.get(`/search/movie`, {
             params: {
@@ -102,41 +102,41 @@ app.get('/filmes', async (req, res) => {
         })
 
         const filmes = resposta.data.results.map(simplificarFilme)
-    
+
         res.json(filmes)
-    } catch(erro) {
+    } catch (erro) {
 
         res.status(502).json({
             "mensagem": 'Não foi possível consultar o catálogo de filmes'
         });
     }
-}) 
+})
 
 app.get('/filme', async (req, res) => {
     const id = req.query.id
 
-    if(!id) {
+    if (!id) {
         return res.status(400).json({
             "mensagem": "Informe o id do filme."
         })
     } else {
         try {
-            const resposta =  await tmdbClient.get(`/movie/${id}?append_to_response=watch/providers`)
+            const resposta = await tmdbClient.get(`/movie/${id}?append_to_response=watch/providers`)
 
             let filme = simplificarFilme(resposta.data)
 
             let duracao = resposta.data.runtime
-            if(duracao === 0 || !duracao) {
+            if (duracao === 0 || !duracao) {
                 duracao = null
-            } 
+            }
 
             let generos = resposta.data.genres.map(genero => {
                 return genero.name
             })
 
             let sinopse = resposta.data.overview
-            if(!sinopse) sinopse = null
-            
+            if (!sinopse) sinopse = null
+
             let imagemDeFundoUrl = resposta.data.backdrop_path
             if (imagemDeFundoUrl) {
                 imagemDeFundoUrl = `https://image.tmdb.org/t/p/w780${imagemDeFundoUrl}`
@@ -147,7 +147,7 @@ app.get('/filme', async (req, res) => {
             let assistirPath = {}
             let provider = resposta.data["watch/providers"]
 
-            if(provider && provider.results && provider.results.BR) {
+            if (provider && provider.results && provider.results.BR) {
                 assistirPath = provider.results.BR
             }
 
@@ -173,8 +173,8 @@ app.get('/filme', async (req, res) => {
                 fundo: imagemDeFundoUrl,
                 ondeAssistir: ondeAssistir
             })
-        } catch(erro){
-            if(erro.response && erro.response.status === 404) {
+        } catch (erro) {
+            if (erro.response && erro.response.status === 404) {
                 res.status(404).json({
                     "mensagem": "Filme não encontrado"
                 })

@@ -32,7 +32,7 @@ export default function CartaoFilme({ titulo, ano, nota, poster, onSelecionar })
     )
 }
 
-const styles = StyleSheet.create ({
+const styles = StyleSheet.create({
     cartao: {
         flexDirection: 'row',
         alignItems: 'flex-start',

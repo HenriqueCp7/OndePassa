@@ -1,24 +1,22 @@
-import React, { Component } from 'react'
-import { View, Text, StyleSheet} from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 
-export default class Cabecalho extends Component {
+export default function Cabecalho() {
 
-  render() {
     return (
-      <View>
-        <Text style={styles.titulo}>
-            🍿 Onde Passa
-        </Text>
+        <View>
+            <Text style={styles.titulo}>
+                🍿 OndePassa
+            </Text>
 
-        <Text style={styles.subtitulo}>
-            Descubra onde assistir qualquer filme
-        </Text>
-      </View>
+            <Text style={styles.subtitulo}>
+                Descubra onde assistir qualquer filme
+            </Text>
+        </View>
     )
-  }
 }
 
-const styles = StyleSheet.create ({
+
+const styles = StyleSheet.create({
     titulo: {
         fontWeight: 'bold',
         fontSize: 28,
